@@ -121,10 +121,12 @@ public class Info {
         }
         // Loris Text Field
         else if ( fieldType.equalsIgnoreCase( "text" ) || fieldType.equalsIgnoreCase( "calc" ) ) {
-
-            lorisField = "\t\t$this->form->addElement('text','" + fieldName + "','" + fieldLabel + "','');\n"
-                    + getStatus();
-
+            lorisField = "\t\t$group[] = $this->form->createElement('text','" + fieldName + "',null,'');\n";
+            lorisField = lorisField + "\t\t$group[] = $this->form->createElement('select','" + fieldName
+                    + "_status',null," + getStatusChoices() + ");\n";
+            lorisField = lorisField + "\t\t$this->form->addGroup($group, '" + fieldName + "_group','" + fieldLabel
+                    + "',$this->_GUIDelimiter, FALSE);\n";
+            lorisField = lorisField + "\t\tunset($group);\n";
         }
         // Loris Checkbox field
         else if ( fieldType.equalsIgnoreCase( "checkbox" ) ) {
@@ -137,8 +139,16 @@ public class Info {
             // we need to find all choices
             String lorisChoices = getSelectChoicesInfo( choices );
 
-            lorisField = "\t\t$this->form->addElement('select','" + fieldName + "','" + fieldLabel
-                    + "',array(null => ''," + lorisChoices + "));\n" + getStatus();
+            lorisField = "\t\t$group[] = $this->form->createElement('select','" + fieldName
+                    + "',null,array(null => ''," + lorisChoices + "));\n";
+
+            lorisField = lorisField + "\t\t$group[] = $this->form->createElement('select','" + fieldName
+                    + "_status',null," + getStatusChoices() + ");\n";
+
+            lorisField = lorisField + "\t\t$this->form->addGroup($group, '" + fieldName + "_group','" + fieldLabel
+                    + "',$this->_GUIDelimiter, FALSE);\n";
+
+            lorisField = lorisField + "\t\tunset($group);\n";
 
         }
         // we are not supposed to have other type of field from redcap
@@ -209,14 +219,28 @@ public class Info {
         if ( !branchingLogic.equals( "" ) ) {
 
             // not answered option + not applicable
-            status = lorisField + "\t\t$this->form->addElement('select','" + fieldName + "_status','" + "Status"
-                    + "',array(null => ''," + "'not_answered' =>'Not Answered','not_applicable' =>'Not Applicable'"
-                    + "));\n";
+            status = "\t\t$this->form->addElement('select','" + fieldName + "_status','" + "',array(null => '',"
+                    + "'not_answered' =>'Not Answered','not_applicable' =>'Not Applicable'" + "));\n";
 
         } else {
             // not answered option + not applicable
-            status = lorisField + "\t\t$this->form->addElement('select','" + fieldName + "_status','" + "Status"
-                    + "',array(null => ''," + "'not_answered' =>'Not Answered'" + "));\n";
+            status = "\t\t$this->form->addElement('select','" + fieldName + "_status','" + "',array(null => '',"
+                    + "'not_answered' =>'Not Answered'" + "));\n";
+        }
+        return status;
+    }
+
+    private String getStatusChoices() {
+
+        String status = "";
+        // if we have some branching logic
+        if ( !branchingLogic.equals( "" ) ) {
+
+            status = "array(null => '','not_answered' =>'Not Answered','not_applicable' =>'Not Applicable')";
+
+        } else {
+            // not answered option
+            status = "array(null => '','not_answered' =>'Not Answered')";
         }
         return status;
     }
